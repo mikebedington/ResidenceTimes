@@ -28,8 +28,10 @@ class pylag_reader:
 				files_to_retrieve.append(self.pylag_files_list[this_file_ind])
 		
 		particle_dict = {}		
+		tot_files = len(files_to_retrieve)
 
-		for this_file in files_to_retrieve:
+		for this_ind, this_file in enumerate(files_to_retrieve):
+			print('Retrieving file %d of %d' % (this_ind +1, tot_files))
 			this_nc = nc.Dataset(self.data_dir + this_file, 'r')
 			
 			x_adj = this_nc.variables['xpos'][:] - self.estuary_origin[0]
@@ -40,4 +42,4 @@ class pylag_reader:
 			particle_dict[np.min(this_t)] = this_part_dict	
 			this_nc.close()		
 
-		return particle_dict		
+		return particle_dict
