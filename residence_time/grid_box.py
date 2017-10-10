@@ -12,8 +12,8 @@ class regular_grid():
 		assert grid_lims[0,0] < grid_lims[1,0] and grid_lims[0,1] < grid_lims[1,1]
 		self.grid_lims = grid_lims		
 
-		self.no_x_boxes = np.ceil((grid_lims[1,0] - grid_lims[0,0])/res)
-		self.no_y_boxes = np.ceil((grid_lims[1,1] - grid_lims[0,1])/res)
+		self.no_x_boxes = int(np.ceil((grid_lims[1,0] - grid_lims[0,0])/res))
+		self.no_y_boxes = int(np.ceil((grid_lims[1,1] - grid_lims[0,1])/res))
 
 		self.total_boxes = self.no_x_boxes * self.no_y_boxes
 
@@ -28,8 +28,7 @@ class regular_grid():
 		box_no = np.asarray(np.arange(1, self.total_boxes + 1), dtype=int)
 		self.box_no = np.reshape(box_no, [self.no_y_boxes, self.no_x_boxes]).T
 
-	def which_box(self, points_array_x, points_array_y):
-		
+	def which_box(self, points_array_x, points_array_y):		
 		x_boxes = np.floor(points_array_x/self.grid_resolution)
 		y_boxes = np.floor(points_array_y/self.grid_resolution)
 
@@ -47,12 +46,12 @@ class regular_grid():
 
 		return self.x_centre_coords, self.y_centre_coords, self.box_no
 
-	def get_box_coord(self, box_nos):
-		
+	def get_box_coord(self, box_nos):	
 		box_y = np.floor(box_nos/self.no_x_boxes)
 		box_x = box_nos - box_y*self.no_x_boxes
 
 		box_coords = np.asarray([box_x * self.grid_resolution, box_y * self.grid_resolution]).T + 0.5*self.grid_resolution
+
 
 		box_coords[box_nos == -999, :] = -999
 	
@@ -79,14 +78,11 @@ class fvcom_grid():
 		self.grid_lims_raw = np.loadtxt(grid_lims_file)
 		self.estuary_origin = np.asarray([self.grid_lims_raw[0,0], self.grid_lims_raw[0,1]])
 
-		self.raw_triangles, nodes, self.raw_X, self.raw_Y, depth = pf.grid_tools.read_fvcom_mesh(grid_file)
+		self.raw_triangles, nodes, self.raw_X, self.raw_Y, depth = pf.grid.read_fvcom_mesh(grid_file)
 		
 		self.X = self.raw_X - self.estuary_origin[0]
 		self.Y = self.raw_Y - self.estuary_origin[1]
 
 		self.grid_lims = np.asarray([[0, self.grid_lims_raw[1,0] - self.estuary_origin[0]], [0, self.grid_lims_raw[1,1] - self.estuary_origin[1]]]).T
-
-
-
 
 

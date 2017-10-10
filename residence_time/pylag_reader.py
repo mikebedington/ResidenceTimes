@@ -17,7 +17,7 @@ class pylag_reader:
 		pylag_files_list_raw = os.listdir(pylag_data_dir)
 		self.pylag_files_list = natsorted([this_str for this_str in pylag_files_list_raw if '.nc' in this_str])
 
-	def return_particle_coords(self, files='all'):
+	def return_particle_coords_whole_file(self, files='all'):
 		if files == 'all':
 			files_to_retrieve = self.pylag_files_list
 		elif isinstance(files, int):
@@ -32,14 +32,29 @@ class pylag_reader:
 
 		for this_ind, this_file in enumerate(files_to_retrieve):
 			print('Retrieving file %d of %d' % (this_ind +1, tot_files))
-			this_nc = nc.Dataset(self.data_dir + this_file, 'r')
-			
-			x_adj = this_nc.variables['xpos'][:] - self.estuary_origin[0]
-			y_adj = this_nc.variables['ypos'][:] - self.estuary_origin[1]			
-			this_t = this_nc.variables['time'][:] - self.time_origin
-
-			this_part_dict = {'x':x_adj, 'y':y_adj, 'z':this_nc.variables['zpos'][:], 't':this_t}
-			particle_dict[np.min(this_t)] = this_part_dict	
+			this_part_dict = self.return_particle_coords(this_file, 'all')
+			particle_dict[np.min(this_part_dict['t'])] = this_part_dict	
 			this_nc.close()		
 
 		return particle_dict
+
+	def return_particle_coords(self, file_str, part_indices):
+		this_nc = nc.Dataset(self.data_dir + file_str, 'r')
+		if isinstance(part_indices, str) and part_indices == 'all':
+			part_indices = np.arange(0, py_nc.variables['xpos'].shape[1])
+
+		x_adj = this_nc.variables['xpos'][:, part_indices] - self.estuary_origin[0]
+		y_adj = this_nc.variables['ypos'][:, part_indices] - self.estuary_origin[1]
+		z_adj = this_nc.variables['zpos'][:, part_indices]
+		this_t = this_nc.variables['time'][:] - self.time_origin
+
+		part_dict_temp = {'x':x_adj, 'y':y_adj, 'z':z_adj, 't':this_t}
+		this_nc.close()
+		part_dict = {np.min(part_dict_temp['t']):part_dict_temp}
+		return part_dict
+
+	def get_particle_nos(self):
+		this_nc = nc.Dataset(self.data_dir + self.pylag_files_list[0])
+		particle_nos = this_nc.variables['xpos'].shape[1]
+		this_nc.close()
+		return particle_nos
