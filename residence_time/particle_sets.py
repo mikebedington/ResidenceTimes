@@ -107,11 +107,11 @@ class particle_set():
 			part_loops = total_parts/parts_per_loop
 
 		# loop over file and particle subset to update mean and std
-		for this_file in self.data_reader.pylag_files_list:
+		for this_file_ind, this_file in enumerate(self.data_reader.pylag_files_list):
 			print('Reading file {}'.format(this_file))
 			if total_parts == parts_per_loop:
 				print('Retrieving all')
-				self.get_data_file(this_file)
+				self.get_data_file(get_files=this_file_ind)
 				self.get_particle_box_series()
 				self.calc_residence_times(this_area='estuary_area')
 				del self.particle_data
