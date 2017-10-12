@@ -84,7 +84,7 @@ class particle_set():
 				this_time_residences.append(parse_occupation_series(this_part_series))
 			
 			if indices == None:
-				res_array = np.append(np.expand_dims(np.arange(0,len(this_time_residences), axis=1), np.asarray(this_time_residences), axis=1)
+				res_array = np.append(np.expand_dims(np.arange(0,len(this_time_residences)), axis=1), np.asarray(this_time_residences), axis=1)
 			else:
 				res_array = np.append(np.expand_dims(indices, axis=1), np.asarray(this_time_residences), axis=1)
 			
@@ -231,7 +231,7 @@ class grid_area():
 
 	def points_in_area(self, points_array, reorigin=False):
 		if reorigin:
-			points_array = np.asarray(points_origin[:,0] - self.estuary_origin[0], points_origin[:,1] - self.estuary_origin[1]])
+			points_array = np.asarray([points_origin[:,0] - self.estuary_origin[0], points_origin[:,1] - self.estuary_origin[1]])
 
 		return np.asarray(self.path.contains_points(points_list))
 	
