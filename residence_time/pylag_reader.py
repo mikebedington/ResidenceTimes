@@ -41,7 +41,7 @@ class pylag_reader:
 	def return_particle_coords(self, file_str, part_indices):
 		this_nc = nc.Dataset(self.data_dir + file_str, 'r')
 		if isinstance(part_indices, str) and part_indices == 'all':
-			part_indices = np.arange(0, py_nc.variables['xpos'].shape[1])
+			part_indices = np.arange(0, this_nc.variables['xpos'].shape[1])
 
 		x_adj = this_nc.variables['xpos'][:, part_indices] - self.estuary_origin[0]
 		y_adj = this_nc.variables['ypos'][:, part_indices] - self.estuary_origin[1]

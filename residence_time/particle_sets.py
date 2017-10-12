@@ -214,6 +214,12 @@ class grid_area():
 	def add_reg_grid(self, reg_grid):
 		x_coords, y_coords, box_no = reg_grid.get_centre_coords()
 		self.grid_boxes = box_no.flatten()[self.path.contains_points(np.asarray([x_coords.flatten(), y_coords.flatten()]).T)]
+
+	def points_in_area(self, points_array, reorigin=False):
+		if reorigin:
+			points_array = np.asarray(points_origin[:,0] - self.estuary_origin[0], points_origin[:,1] - self.estuary_origin[1]])
+
+		return np.asarray(self.path.contains_points(points_list))
 	
 
 class grid_area_coords(grid_area):
@@ -224,12 +230,4 @@ class grid_area_coords(grid_area):
 		self.estuary_origin = np.asarray([grid_lims[0,0], grid_lims[0,1]])
 		self.poly_points = np.asarray([coords[:,0] - self.estuary_origin[0], coords[:,1] - self.estuary_origin[1]]).T
 		self.path = mplPath.Path(self.poly_points)
-
-
-
-
-
-
-
-
 	
