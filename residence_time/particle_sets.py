@@ -72,7 +72,7 @@ class particle_set():
 		self.grid_areas[this_area] = grid_area_coords(coords, grid_lims_file=self.grid_lims_file)
 		self.grid_areas[this_area].add_reg_grid(self.subsample_grid)
 
-	def calc_residence_times(self, indices, this_area=1):
+	def calc_residence_times(self, indices=None, this_area=1):
 		if not hasattr(self, 'residence_times'):
 			self.residence_times = {}
 
@@ -83,7 +83,11 @@ class particle_set():
 			for this_part_series in in_poly.T:
 				this_time_residences.append(parse_occupation_series(this_part_series))
 			
-			res_array = np.append(np.expand_dims(indices, axis=1), np.asarray(this_time_residences), axis=1)
+			if indices == None:
+				res_array = np.append(np.expand_dims(np.arange(0,len(this_time_residences), axis=1), np.asarray(this_time_residences), axis=1)
+			else:
+				res_array = np.append(np.expand_dims(indices, axis=1), np.asarray(this_time_residences), axis=1)
+			
 			if this_time_key in self.residence_times:
 				self.residence_times[this_time_key] = np.append(self.residence_times[this_time_key], res_array, axis=0)
 			else:
@@ -105,13 +109,23 @@ class particle_set():
 		# loop over file and particle subset to update mean and std
 		for this_file in self.data_reader.pylag_files_list:
 			print('Reading file {}'.format(this_file))
-			for this_loop_no in np.arange(0, part_loops):
-				print('Loop {} of {}'.format(this_loop_no + 1, part_loops))
-				this_indices = np.arange(this_loop_no*parts_per_loop, ((this_loop_no + 1)*parts_per_loop), dtype=int)
-				self.get_data_subset(this_file,this_indices)
+			if total_parts == parts_per_loop:
+				print('Retrieving all')
+				self.get_data_file(this_file)
 				self.get_particle_box_series()
-				self.calc_residence_times(this_indices, 'estuary_area')
-				del self.particle_data 
+				self.calc_residence_times(this_area='estuary_area')
+				del self.particle_data
+
+			else:
+				for this_loop_no in np.arange(0, part_loops):
+					print('Loop {} of {}'.format(this_loop_no + 1, part_loops))
+					this_indices = np.arange(this_loop_no*parts_per_loop, ((this_loop_no + 1)*parts_per_loop), dtype=int)
+					self.get_data_subset(this_file,this_indices)
+					self.get_particle_box_series()
+					self.calc_residence_times(indices=this_indices, this_area='estuary_area')
+					del self.particle_data 
+
+
 
 	def save_residence_times(self):
 		file_name = 'residence_times_' + self.set_name + '.pk1'

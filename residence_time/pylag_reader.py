@@ -22,6 +22,8 @@ class pylag_reader:
 			files_to_retrieve = self.pylag_files_list
 		elif isinstance(files, int):
 			files_to_retrieve = [self.pylag_files_list[files]]
+		elif isinstance(files, str):
+			files_to_retrieve = [files]
 		else:
 			files_to_retrieve = []
 			for this_file_ind in files:
