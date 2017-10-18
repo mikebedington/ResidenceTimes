@@ -84,7 +84,7 @@ class particle_set():
 			for this_part_series in in_poly.T:
 				this_time_residences.append(parse_occupation_series(this_part_series))
 			
-			if indices == None:
+			if indices is None:
 				res_array = np.append(np.expand_dims(np.arange(0,len(this_time_residences)), axis=1), np.asarray(this_time_residences), axis=1)
 			else:
 				res_array = np.append(np.expand_dims(indices, axis=1), np.asarray(this_time_residences), axis=1)
@@ -125,8 +125,6 @@ class particle_set():
 					self.get_particle_box_series()
 					self.calc_residence_times(indices=this_indices, this_area='estuary_area')
 					del self.particle_data 
-
-
 
 	def save_residence_times(self):
 		file_name = 'residence_times_' + self.set_name + '.pk1'
