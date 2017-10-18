@@ -16,6 +16,7 @@ class particle_set():
 		self.fvcom_grid = gb.fvcom_grid(grid_lims_file, grid_file)
 		self.subsample_grid = gb.regular_grid(res, grid_lims_file=grid_lims_file)
 		self.set_name = set_name
+		self.grid_file = grid_file
 
 	def get_data_file(self, get_files='all'): 
 		self.particle_data = self.data_reader.return_particle_coords_whole_file(files=get_files)
@@ -58,7 +59,7 @@ class particle_set():
 		elif this_area is None:
 			this_area = len(self.grid_areas) + 1
 
-		self.grid_areas[this_area] = grid_area(grid_lims_file=self.grid_lims_file)
+		self.grid_areas[this_area] = grid_area(grid_file=self.grid_file, grid_lims_file=self.grid_lims_file)
 		self.grid_areas[this_area].add_reg_grid(self.subsample_grid)	
 
 	def add_grid_area_by_coord(self, coords, this_area=None):
@@ -69,7 +70,7 @@ class particle_set():
 		elif this_area is None:
 			this_area = len(self.grid_areas) + 1
 
-		self.grid_areas[this_area] = grid_area_coords(coords, grid_lims_file=self.grid_lims_file)
+		self.grid_areas[this_area] = grid_area_coords(coords, grid_file=self.grid_file, grid_lims_file=self.grid_lims_file)
 		self.grid_areas[this_area].add_reg_grid(self.subsample_grid)
 
 	def calc_residence_times(self, indices=None, this_area=1):
@@ -149,6 +150,10 @@ class particle_set():
 			box_means.append(this_mean)
 		return np.asarray(unique_boxes, dtype=int), np.asarray(box_means)
 
+
+
+
+
 	def mean_per_grid_area(self, box_data_in):
 		grid_area_means = []
 		grid_area_box_lists = []
@@ -180,6 +185,10 @@ class particle_set():
 		pc_data = np.reshape(pc_data, (pc_x.shape[1], pc_x.shape[0])).T
 		pc_data = np.ma.masked_where(np.isnan(pc_data), pc_data)
 		return pc_x, pc_y, pc_data
+
+
+
+
 		
 
 
@@ -201,10 +210,11 @@ def parse_occupation_series(bool_series):
 		return last_present, first_leave	
 
 
+
 class grid_area():
 	def __init__(self, grid_file='tamar_v2_grd.dat', grid_lims_file='tamar_est_lims.dat'):
 		self.no_poly_points = int(input('No of polygon points: '))
-	
+
 		triangle, nodes, X, Y, Z = pf.grid.read_fvcom_mesh(grid_file)
 		plt.figure()
 		plt.scatter(X,Y)
@@ -214,7 +224,7 @@ class grid_area():
 		plt.ylim(grid_lims[:,1])
 
 		self.estuary_origin = np.asarray([grid_lims[0,0], grid_lims[0,1]])
-
+		self.grid_file = grid_file
 		time.sleep(7)
 		self.poly_points_raw = np.asarray(plt.ginput(self.no_poly_points))
 		self.poly_points = np.asarray([self.poly_points_raw[:,0] - self.estuary_origin[0], self.poly_points_raw[:,1] - self.estuary_origin[1]]).T
@@ -227,13 +237,23 @@ class grid_area():
 	
 	def add_reg_grid(self, reg_grid):
 		x_coords, y_coords, box_no = reg_grid.get_centre_coords()
+		self.reg_grid = reg_grid
 		self.grid_boxes = box_no.flatten()[self.path.contains_points(np.asarray([x_coords.flatten(), y_coords.flatten()]).T)]
+
+	def add_fvcom_nodes(self):
+		triangle, nodes, X, Y, Z = pf.grid.read_fvcom_mesh(self.grid_file)
+		points_to_add = self.points_in_area(np.asarray([X,Y]).T, reorigin=True)
+		self.node_index = np.arange(0,len(X))[points_to_add]
+		self.node_X = X[points_to_add] - self.estuary_origin[0]
+		self.node_Y = Y[points_to_add] - self.estuary_origin[1]
+		if hasattr(self, 'reg_grid'):
+			self.node_grid_boxes = self.reg_grid.which_box(self.node_X, self.node_Y)
 
 	def points_in_area(self, points_array, reorigin=False):
 		if reorigin:
-			points_array = np.asarray([points_origin[:,0] - self.estuary_origin[0], points_origin[:,1] - self.estuary_origin[1]])
+			points_array = np.asarray([points_array[:,0] - self.estuary_origin[0], points_array[:,1] - self.estuary_origin[1]]).T
 
-		return np.asarray(self.path.contains_points(points_list))
+		return np.asarray(self.path.contains_points(points_array))
 	
 
 class grid_area_coords(grid_area):
@@ -244,4 +264,4 @@ class grid_area_coords(grid_area):
 		self.estuary_origin = np.asarray([grid_lims[0,0], grid_lims[0,1]])
 		self.poly_points = np.asarray([coords[:,0] - self.estuary_origin[0], coords[:,1] - self.estuary_origin[1]]).T
 		self.path = mplPath.Path(self.poly_points)
-	
+		self.grid_file = grid_file
